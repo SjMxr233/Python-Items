@@ -1,26 +1,23 @@
 import os
 os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 import numpy as np
-
 import torch
 import torch.nn.functional as F
 from ctpn_model import CTPN
 from ctpn_utils import gen_anchor, bbox_transfor_inv, clip_box, filter_bbox,nms, TextProposalConnectorOriented
-from ctpn_utils import resize
 import config
 
-def get_det_boxes(image):
-    prob_thresh = 0.5
-    height = 720
-    gpu = True
-    device = torch.device('cuda:0' if gpu else 'cpu')
-    weights = os.path.join(config.checkpoints_dir, 'ctpn_0.2899.pth')
-    model = CTPN()
-    model.load_state_dict(torch.load(weights, map_location=device)['model_state_dict'])
-    model.to(device)
-    model.eval()
+prob_thresh = 0.5
+gpu = True
+device = torch.device('cuda:0' if gpu else 'cpu')
+weights = os.path.join(config.checkpoints_dir, 'ctpn_0.2899.pth')
+model = CTPN()
+model.load_state_dict(torch.load(weights, map_location=device)['model_state_dict'])
+model.to(device)
+model.eval()
 
-    #image = resize(image, height=height)
+def get_det_boxes(image):
+
     image_c = image.copy()
     h, w = image.shape[:2]
     image = image.astype(np.float32) - config.IMAGE_MEAN
@@ -57,16 +54,6 @@ def get_det_boxes(image):
         textConn = TextProposalConnectorOriented()
         text = textConn.get_text_lines(select_anchor, select_score, [h, w])
 
-        # for i in text:
-        #     s = str(round(i[-1] * 100, 2)) + '%'
-        #     i = [int(j) for j in i]
-        #     cv2.line(image_c, (i[0], i[1]), (i[2], i[3]), (255, 0, 0), 2)
-        #     cv2.line(image_c, (i[0], i[1]), (i[4], i[5]), (255, 0, 0), 2)
-        #     cv2.line(image_c, (i[6], i[7]), (i[2], i[3]), (255, 0, 0), 2)
-        #     cv2.line(image_c, (i[4], i[5]), (i[6], i[7]), (255, 0, 0), 2)
-        #     cv2.putText(image_c, s, (i[0]+(i[2]-i[0])//2-40, i[1]-7),cv2.FONT_HERSHEY_SIMPLEX,1,(255,0,0),
-        #                 2,
-        #                 cv2.LINE_AA)
         image_total = []
         for i in text:
             xmin = int(i[0])

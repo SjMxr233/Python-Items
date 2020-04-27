@@ -45,39 +45,47 @@ class Gui(MainWindowForm):
 
         if fileName != '':
             self.videoParser.LoadVideo(fileName)
-            self.videoPath.setText(fileName)
-            self.fps.setText(str(int(self.videoParser.fps)))
-            self.duration.setText(str(int(self.videoParser.frames)))
             w = int(self.videoParser.width)
             h = int(self.videoParser.height)
+            self.SetLabelInitText(w,h,self.videoParser.frames,self.videoParser.fps,fileName)
+            self.SetVideoInitState(fileName)
+            self.SetButtonInitState()
+            self.SetRectItem(w,h)
 
-            self.size.setText(str(w)+'X'+str(h))
 
-            s = int(self.videoParser.frames / self.videoParser.fps % 60)
-            f = int(self.videoParser.frames / self.videoParser.fps/ 60 % 60)
-            self.totalTime = '{0:02d}:{1:02d}'.format(f,s)
-            self.currentTime = '00:00'
-            self.timeline.setText(self.currentTime+'/'+self.totalTime)
+    def SetRectItem(self,w,h):
+        # [w,h] =[320,240] videoItem.size
+        self.factor = w / 320
+        self.hh = h / self.factor
+        self.rectItem.setRect(0, (240 - self.hh) / 2, 320, self.hh)
+        self.rectItem.updateHandlesPos()
+        self.rectItem.setHH(self.hh, self.factor)
 
-            self.video.setMedia(QMediaContent(QUrl.fromLocalFile(fileName)))
-            self.video.setVolume(0)
-            self.video.play()
-            self.video.pause()
 
-            self.play.setEnabled(True)
-            self.rectItem.setVisible(True)
-            self.ctpn.setEnabled(True)
-            self.save.setEnabled(False)
+    def SetVideoInitState(self,fileName):
+        self.video.setMedia(QMediaContent(QUrl.fromLocalFile(fileName)))
+        self.video.setVolume(0)
+        self.video.play()
+        self.video.pause()
 
-            #[w,h] =[320,240] videoItem.size
-            self.factor = w/320
-            self.hh = h/self.factor
-            self.rectItem.setRect(0,(240-self.hh)/2,320,self.hh)
-            self.rectItem.updateHandlesPos()
-            self.rectItem.setHH(self.hh,self.factor)
+    def SetLabelInitText(self,weight,height,frames,fps,fileName):
+        s = int(frames / fps % 60)
+        f = int(frames / fps / 60 % 60)
+        self.totalTime = '{0:02d}:{1:02d}'.format(f, s)
+        self.currentTime = '00:00'
 
-            self.clip.setText(str(w)+'X'+str(h))
+        self.videoPath.setText(fileName)
+        self.fps.setText(str(int(fps)))
+        self.duration.setText(str(int(frames)))
+        self.size.setText(str(weight) + 'X' + str(height))
+        self.timeline.setText(self.currentTime + '/' + self.totalTime)
+        self.clip.setText(str(weight) + 'X' + str(height))
 
+    def SetButtonInitState(self):
+        self.play.setEnabled(True)
+        self.rectItem.setVisible(True)
+        self.ctpn.setEnabled(True)
+        self.save.setEnabled(False)
 
     def PlayVideo(self):
         if self.video.state() == QMediaPlayer.PlayingState:

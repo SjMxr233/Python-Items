@@ -2,7 +2,7 @@
 from PyQt5.QtMultimedia import QMediaPlayer
 from PyQt5 import QtCore, QtGui, QtWidgets,QtMultimediaWidgets
 from Gui.GraphicsRectItem import GraphicsRectItem
-
+from Gui.Utils import Utils
 class slider(QtWidgets.QSlider):
     def __init__(self,*args):
         super().__init__(*args)
@@ -122,33 +122,7 @@ class MainWindowForm(QtWidgets.QMainWindow):
         self.horizontalSlider = slider(self.centralwidget)
         self.horizontalSlider.setRange(0,0)
         self.horizontalSlider.setOrientation(QtCore.Qt.Horizontal)
-        self.horizontalSlider.setStyleSheet(
-                      ' QSlider{  '
-                      '  border-color: #bcbcbc; '
-                      '  }'
-                     '  QSlider::groove:horizontal {   '                               
-                             'border: 1px solid #999999;   '                           
-                           '  height: 1px;   '                                         
-                          ' margin: 0px 0;    '                                       
-                       '     left: 5px; right: 5px; '
-                      '   } '
-               
-                      '  QSlider::handle:horizontal {    '                                                  
-                            ' border-radius: 5px;'
-                             '   background: white;'
-                             'width: 10px;  '       
-                             'margin: -7px -7px -7px -7px;      '            
-                        '} '
-                  
-                       ' QSlider::add-page:horizontal{'
-                        'background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 #bcbcbc, stop:0.25 #bcbcbc, stop:0.5 #bcbcbc, stop:1 #bcbcbc); '
-                        
-                       ' }'
-            
-                       ' QSlider::sub-page:horizontal{    '                           
-                        ' background: qlineargradient(spread:pad, x1:0, y1:1, x2:0, y2:0, stop:0 #439cf3, stop:0.25 #439cf3, stop:0.5 #439cf3, stop:1 #439cf3);   '                  
-                       ' }'
-        )
+        self.horizontalSlider.setStyleSheet(Utils.LoadQss('Gui/Asset/style.qss'))
 
         self.timeline = QtWidgets.QLabel(self.centralwidget)
         self.play = QtWidgets.QPushButton(self.centralwidget)
@@ -170,14 +144,10 @@ class MainWindowForm(QtWidgets.QMainWindow):
 
         self.menubar = QtWidgets.QMenuBar(MainWindow)
         self.menubar.setEnabled(True)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 759, 23))
-
         self.menuFile = QtWidgets.QMenu(self.menubar)
-        self.menuFile.setGeometry(QtCore.QRect(351, 235, 146, 72))
+
 
         self.actionLoadVideo = QtWidgets.QAction(MainWindow)
-        self.actionSave = QtWidgets.QAction(MainWindow)
-        self.actionQuit = QtWidgets.QAction(MainWindow)
 
         self.menubar.addAction(self.menuFile.menuAction())
         self.menuFile.addAction(self.actionLoadVideo)
@@ -238,8 +208,6 @@ class MainWindowForm(QtWidgets.QMainWindow):
         self.menuFile.setTitle(_translate("MainWindow", "File"))
         self.toolBar.setWindowTitle(_translate("MainWindow", "toolBar"))
         self.actionLoadVideo.setText(_translate("MainWindow", "Load"))
-        self.actionSave.setText(_translate("MainWindow", "Save"))
-        self.actionQuit.setText(_translate("MainWindow", "Quit"))
 
         self.cutRateLabel.setFont(LabelFont)
         self.cutRateLabel.setText(_translate("MainWindow","Detect Rate(1s-10s)："))
