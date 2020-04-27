@@ -3,20 +3,13 @@ os.environ['CUDA_VISIBLE_DEVICES'] = '0'
 import numpy as np
 import torch
 import torch.nn.functional as F
-from ctpn_model import CTPN
-from ctpn_utils import gen_anchor, bbox_transfor_inv, clip_box, filter_bbox,nms, TextProposalConnectorOriented
-import config
+from Ctpn.ctpn_utils import gen_anchor, bbox_transfor_inv, clip_box, filter_bbox,nms, TextProposalConnectorOriented
+import Ctpn.config as config
 
 prob_thresh = 0.5
-gpu = True
-device = torch.device('cuda:0' if gpu else 'cpu')
-weights = os.path.join(config.checkpoints_dir, 'ctpn_0.2899.pth')
-model = CTPN()
-model.load_state_dict(torch.load(weights, map_location=device)['model_state_dict'])
-model.to(device)
-model.eval()
 
-def get_det_boxes(image):
+
+def get_det_boxes(image,model,device):
 
     image_c = image.copy()
     h, w = image.shape[:2]

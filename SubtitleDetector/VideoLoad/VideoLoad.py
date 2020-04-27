@@ -3,12 +3,15 @@ import numpy as np
 from Ctpn.ctpn_predict import get_det_boxes
 import time
 class VideoParser:
-    def __init__(self):
+    def __init__(self,model,device):
         self.__img = []
         self.__img_frame = []
 
         self.__ret = []
         self.__ret_frame= []
+
+        self.__model = model
+        self.__device = device
 
     def LoadVideo(self, src):
         self.video = cv.VideoCapture(src)
@@ -47,7 +50,7 @@ class VideoParser:
         self.__ret_frame.clear()
         length = len(self.__img)
         for i in range(length):
-            image = get_det_boxes(self.__img[i])
+            image = get_det_boxes(self.__img[i],self.__model,self.__device)
             for j in image:
                 self.__ret.append(j)
                 self.__ret_frame.append(self.__img_frame[i])
@@ -91,7 +94,7 @@ class VideoParser:
             return False
         return True
 
-    def frameTotime(self,frame,fps):
+    def FrameTotime(self,frame,fps):
         s = int(frame/fps%60)
         f = int(frame/fps/60%60)
         img_name= '{0:02d}-{1:02d}'.format(f,s)
@@ -101,7 +104,7 @@ class VideoParser:
         length = len(self.__img)
         for i in range(length):
             img = self.__img[i]
-            img_name = self.frameTotime(self.__img_frame[i],self.fps)
+            img_name = self.FrameTotime(self.__img_frame[i],self.fps)
             cv.imwrite(output+'/'+img_name+'.png',img)
 
     def SaveResult(self,output):
@@ -110,7 +113,7 @@ class VideoParser:
         cnt = 0
         for i in range(length):
             img = self.__ret[i]
-            img_name = self.frameTotime(self.__ret_frame[i],self.fps)
+            img_name = self.FrameTotime(self.__ret_frame[i],self.fps)
             if img_name == last_name:
                 cnt += 1
                 cv.imwrite(output + '/' + img_name + '(' + str(cnt) + ')' + '.png', img)

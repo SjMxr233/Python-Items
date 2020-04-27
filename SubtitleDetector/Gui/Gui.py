@@ -1,6 +1,5 @@
 from Gui.DetectorForm import *
 from PyQt5.QtMultimedia import QMediaContent
-from VideoLoad.VideoLoad import VideoParser
 from PyQt5.Qt import QUrl,QThread,pyqtSignal
 import os
 
@@ -34,8 +33,10 @@ class Gui(MainWindowForm):
         self.setupUi(self)
         self.setMinimumWidth(700)
         self.setMinimumHeight(475)
-        self.videoParser = VideoParser()
         self.process = ProcessBar()
+
+    def SetVideoParser(self,videoParser):
+        self.videoParser = videoParser
         self.DetectThread = DetectThread(self.videoParser)
         self.DetectThread.completed_signal.connect(self.CloseProcessBar)
 
@@ -113,9 +114,6 @@ class Gui(MainWindowForm):
     def ClickSliderPos(self,pos):
         self.video.setPosition(pos)
 
-    def resizeEvent(self, *args, **kwargs):
-        self.gv.fitInView(self.videoItem,QtCore.Qt.KeepAspectRatio)
-
     def CtpnDetect(self):
         self.process.show()
         rate = int(self.cutRate.text())
@@ -139,4 +137,7 @@ class Gui(MainWindowForm):
         if fileName != '':
             # self.videoParser.SaveFrame(fileName)
             self.videoParser.SaveResult(fileName)
+
+    def resizeEvent(self, *args, **kwargs):
+        self.gv.fitInView(self.videoItem,QtCore.Qt.KeepAspectRatio)
 
