@@ -23,7 +23,7 @@ class GraphicsView(QtWidgets.QGraphicsView):
 
 class ProcessBarForm(QtWidgets.QWidget):
     def setupUI(self):
-        self.resize(300,50)
+        self.setFixedSize(300,50)
         self.setWindowTitle('Detecting')
         self.setWindowFlags(QtCore.Qt.WindowMinimizeButtonHint|QtCore.Qt.WindowStaysOnTopHint)
         self.setWindowModality(QtCore.Qt.ApplicationModal)

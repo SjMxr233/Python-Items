@@ -5,10 +5,7 @@ import torch
 import torch.nn.functional as F
 from Ctpn.ctpn_utils import gen_anchor, bbox_transfor_inv, clip_box, filter_bbox,nms, TextProposalConnectorOriented
 import Ctpn.config as config
-
 prob_thresh = 0.5
-
-
 def get_det_boxes(image,model,device):
 
     image_c = image.copy()
@@ -53,6 +50,8 @@ def get_det_boxes(image,model,device):
             xmax = int(i[2])
             ymin = int(i[1])
             ymax = int(i[5])
+            if xmin<=0 or xmax<=0 or ymin<=0 or ymax<=0:
+                continue
             img = image_c[ymin:ymax,xmin:xmax]
             image_total.append(img)
         return image_total

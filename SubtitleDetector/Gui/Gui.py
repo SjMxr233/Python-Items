@@ -1,8 +1,11 @@
 from Gui.DetectorForm import *
 from PyQt5.QtMultimedia import QMediaContent
 from PyQt5.Qt import QUrl,QThread,pyqtSignal
-import os
-
+from VideoLoad.VideoLoad import VideoParser
+from Ctpn.ctpn_model import CTPN
+import Ctpn.config as config
+import os,torch,time
+gpu = True
 class DetectThread(QThread):
     completed_signal = pyqtSignal()
     def __init__(self,videoParser):
@@ -17,9 +20,9 @@ class DetectThread(QThread):
         self.xmax = xmax
 
     def run(self):
-        self.videoParser.Solve(self.rate,
-                               self.ymin,self.ymax,
-                               self.xmin,self.xmax)
+        self.videoParser.Solve(self.rate,self.ymin,self.ymax,
+                                         self.xmin,self.xmax)
+        self.videoParser.Detect()
         self.completed_signal.emit()
 
 class ProcessBar(ProcessBarForm):
@@ -29,23 +32,34 @@ class ProcessBar(ProcessBarForm):
 
 class Gui(MainWindowForm):
     def __init__(self):
+        time0 = time.time()
         super().__init__()
         self.setupUi(self)
         self.setMinimumWidth(700)
         self.setMinimumHeight(475)
+        self.InitVideoParser()
         self.process = ProcessBar()
-
-    def SetVideoParser(self,videoParser):
-        self.videoParser = videoParser
         self.DetectThread = DetectThread(self.videoParser)
         self.DetectThread.completed_signal.connect(self.CloseProcessBar)
+        time0 = time.time() - time0
+        print("Gui time： {0}".format(time0))
+
+    def InitVideoParser(self):
+        model = CTPN()
+        weights = os.path.join(config.checkpoints_dir, 'ctpn_0.2899.pth')
+        device = torch.device('cuda:0' if gpu else 'cpu')
+        model.load_state_dict(torch.load(weights, map_location=device)['model_state_dict'])
+        model.to(device)
+        model.eval()
+        self.videoParser = VideoParser(model, device)
+
 
     def OpenFile(self):
         fileName,fileType=QtWidgets.QFileDialog.getOpenFileName(self,'文件读取',os.getcwd(),
                                                      "Video Files (*.mp4 *.avi)")
 
         if fileName != '':
-            self.videoParser.LoadVideo(fileName)
+            self.videoParser.GetVideoInfo(fileName)
             w = int(self.videoParser.width)
             h = int(self.videoParser.height)
             self.SetLabelInitText(w,h,self.videoParser.frames,self.videoParser.fps,fileName)
@@ -115,6 +129,7 @@ class Gui(MainWindowForm):
         self.video.setPosition(pos)
 
     def CtpnDetect(self):
+        self.video.pause()
         self.process.show()
         rate = int(self.cutRate.text())
         lt,rb = self.rectItem.getCropBox()
@@ -135,7 +150,7 @@ class Gui(MainWindowForm):
     def SaveResult(self):
         fileName = QtWidgets.QFileDialog.getExistingDirectory(self,'文件保存',os.getcwd())
         if fileName != '':
-            # self.videoParser.SaveFrame(fileName)
+            #self.videoParser.SaveFrame(fileName)
             self.videoParser.SaveResult(fileName)
 
     def resizeEvent(self, *args, **kwargs):

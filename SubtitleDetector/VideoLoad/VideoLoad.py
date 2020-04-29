@@ -13,39 +13,41 @@ class VideoParser:
         self.__model = model
         self.__device = device
 
-    def LoadVideo(self, src):
+    def GetVideoInfo(self, src):
         self.video = cv.VideoCapture(src)
         self.fps = self.video.get(cv.CAP_PROP_FPS)
         self.width = self.video.get(cv.CAP_PROP_FRAME_WIDTH)
         self.height = self.video.get(cv.CAP_PROP_FRAME_HEIGHT)
         self.frames = self.video.get(cv.CAP_PROP_FRAME_COUNT)
 
-
     def Solve(self,rate,ymin,ymax,xmin,xmax):
-        rate = self.fps * rate
+        time0 = time.time()
+        rate = int(self.fps) * rate
         i = 0
         self.__img.clear()
         self.__img_frame.clear()
-        self.video.set(cv.CAP_PROP_POS_FRAMES,0)
-        while(True):
-            flag,frame = self.video.read()
+        self.video.set(cv.CAP_PROP_POS_FRAMES, 0)
+        while (True):
+            flag, frame = self.video.read()
             if flag is False:
                 break
-            elif i % rate == 0 :
-                image = frame[ymin:ymax,xmin:xmax]
-                if self.JudgeSubtitle(image):
+            elif i % rate == 0:
+                image = frame[ymin:ymax, xmin:xmax]
+                binaryImage = self.Binary(image)
+                if self.JudgeSubtitle(binaryImage):
                     if self.__img:
-                        last_image=self.__img[-1]
-                        if self.CosineSimilarity(image,last_image) < 0.9:
+                        lastImage = self.Binary(self.__img[-1])
+                        if self.CosineSimilarity(binaryImage, lastImage) < 0.9:
                             self.__img_frame.append(i)
                             self.__img.append(image)
                     else:
                         self.__img_frame.append(i)
                         self.__img.append(image)
-            i+=1
-        self.Detect()
+            i += 1
+        print("VideoSolve time： {}".format(time.time()-time0))
 
     def Detect(self):
+        time0 = time.time()
         self.__ret.clear()
         self.__ret_frame.clear()
         length = len(self.__img)
@@ -54,7 +56,7 @@ class VideoParser:
             for j in image:
                 self.__ret.append(j)
                 self.__ret_frame.append(self.__img_frame[i])
-        return self.__ret
+        print("Detect time： {}".format(time.time() - time0))
 
 
     def Binary(self,img):
@@ -66,15 +68,11 @@ class VideoParser:
         return output
 
     def Mse(self,img_a,img_b):
-        img_a = self.Binary(img_a)
-        img_b = self.Binary(img_b)
         e=(((img_a-img_b)**2).sum())/img_a.size*100
         #print(e)
         return e
 
     def CosineSimilarity(self,img_a,img_b):
-        img_a = self.Binary(img_a)
-        img_b = self.Binary(img_b)
         #avoid uint8 dot overflow
         x = np.array(img_a,dtype=np.int)
         y = np.array(img_b,dtype=np.int)
@@ -88,7 +86,6 @@ class VideoParser:
         return e
 
     def JudgeSubtitle(self,frame):
-        frame = self.Binary(frame)
         temp = (frame**2).sum()/frame.size*100
         if temp < 0.06:
             return False
@@ -123,14 +120,22 @@ class VideoParser:
             if i!=0:
                 last_name = img_name
 
-
-# t=VideoParser()
-# t.LoadVideo('D:/school/VideoParser/TestVideo/zero.mp4')
-# print(t.frames)
+# from Ctpn.ctpn_model import CTPN
+# import Ctpn.config as config
+# import torch,os
+# model = CTPN()
+# weights = 'D:/school/mxr/Ctpn/checkpoints/ctpn_0.2899.pth'
+# device = torch.device('cuda:0')
+# model.load_state_dict(torch.load(weights, map_location=device)['model_state_dict'])
+# model.to(device)
+# model.eval()
+# t=VideoParser(model,device)
+# t.GetVideoInfo('D:/school/mxr/TestVideo/zero.mp4')
 # since = time.time()
-# t.Solve(1,500,720,0,1280)
-# print(time.time()-since)
-# t.SaveResult('D:/school/VideoParser/TestFrame')
+# t.Solve(1,640,720,0,1280)
+# t.Detect()
+# print("Total time：",time.time()-since)
+# t.SaveResult('D:/school/mxr/TestResult')
 
 # import matplotlib.pyplot as plt
 # with open(r"D:\data.txt",'r') as p:

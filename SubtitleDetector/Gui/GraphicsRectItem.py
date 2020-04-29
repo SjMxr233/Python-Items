@@ -7,7 +7,7 @@ class GraphicsRectItem(QGraphicsRectItem):
 
     handleSpace = -5.0
     handleSize = QPointF(10,10)
-    minSize = 25
+    minSize = 20
 
     handleTopLeft = 1
     handleTopMiddle = 2
